@@ -13,6 +13,7 @@ class ControlFrame extends PApplet {
     h=_h;
     PApplet.runSketch(new String[]{this.getClass().getName()}, this);
   }
+  
   public void settings() {
     size(w, h, P2D);
   }

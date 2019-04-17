@@ -23,7 +23,7 @@ class Module{
       parameters.put(name, value);
   }
   
-  void updateParameter(String s, float v){
+  void updateParam(String s, float v){
     parameters.replace(s, v);
   }
   
@@ -51,17 +51,18 @@ class Module{
 class Word{
   ArrayList<Module> modules;
   ArrayList<UUID> segmentIDs;
+  ArrayList<Module> segment;
 
   Word(){
     modules=  new ArrayList<Module>();
     segmentIDs = new  ArrayList<UUID>();
-
+    segment = new ArrayList<Module> (1024);
   }
   
   Word(Word word){
     modules=  new ArrayList<Module>();
     segmentIDs = new  ArrayList<UUID>(word.segmentIDs);
-
+    segment = new ArrayList<Module> (1024);
   }  
   void add(ArrayList<Module> m){
     modules.addAll(m);
@@ -77,9 +78,9 @@ class Word{
   void removeId(UUID id){
     segmentIDs.remove(id);
   }
-  ArrayList<ArrayList<Module>> getSegments(){
-    ArrayList<ArrayList<Module>> segments = new ArrayList<ArrayList<Module>> ();
-    ArrayList<Module> segment = new ArrayList<Module> ();
+  
+  ArrayList<ArrayList<Module>> getSegments(ArrayList<ArrayList<Module>> segments){
+    segment.clear();
     segmentIDs.clear();
     int seg_count=0;
     for (Module m :modules){
@@ -96,7 +97,6 @@ class Word{
         }
       }
       segment.add(m);
-      
     }
     segments.add(new ArrayList<Module>(segment));
     return segments;
@@ -107,19 +107,22 @@ class ParametricLSystem{
   int updateNumber =0;
   HashMap<String, ParametricRule> rules;
   Word word;
-  WordTree wordTree;
   ArrayList<UUID> toRemove;
   boolean finished = false;
-
+  ArrayList<ArrayList<Module>> segments;
+  
   float xPos = 0;
   float yPos = 0;
-  
+  float zPos = 0;
+
   ParametricLSystem(){
     rules = new HashMap<String, ParametricRule>();
     toRemove = new ArrayList<UUID>();
+    word = new Word();
+    segments = new ArrayList<ArrayList<Module>>(1024);
   }
   
-  
+  //Could be generating alot of garbage
   void update(){
     updateNumber ++;
     Word newWord=  new Word();
@@ -137,12 +140,13 @@ class ParametricLSystem{
         newWord.add(rules.get(m.letter).rule(m));
       }
       else{
-         newWord.add(m);
+        newWord.add(m);
       }
     }
-  
     word = newWord;
   }
+  
+  
   
   float updateSegments(){
     updateNumber ++;
@@ -150,17 +154,13 @@ class ParametricLSystem{
     if (finished){
       return 0 ;
     }
-    ArrayList<ArrayList<Module>> segments = word.getSegments();
+    segments.clear();
+    word.getSegments(segments);
     if (updateNumber >100 && segments.size() ==1){
       finished =true;
     }
-
-    Word newWord=  new Word(word);
-
-    Iterator<ArrayList<Module>> iter  = segments.iterator();
-    
-    ArrayList<Module> segment;
-    ArrayList<Module> newSegment= new ArrayList<Module>();
+    word.clear();
+    //Word newWord=  new Word(word);
 
     for(UUID id : toRemove){
        turtle.removeSegment(id);
@@ -173,6 +173,10 @@ class ParametricLSystem{
     boolean isDirty;
     int nDirty =0;
     int index =0;
+    
+    Iterator<ArrayList<Module>> iter  = segments.iterator();
+    ArrayList<Module> segment;
+    ArrayList<Module> newSegment= new ArrayList<Module>();
     while (iter.hasNext()){
       newSegment.clear();
       segment = iter.next();
@@ -201,13 +205,15 @@ class ParametricLSystem{
         turtle.updateSegment(seg.id, newSegment);
       }
       else{
-        turtle.goTo(seg.id);
 
         if (index >0){
-          newSegment.remove(seg);
-          newSegment.add(0,new SegmentMerge());
+          //newSegment.remove(seg);
+          //newSegment.add(0,new SegmentMerge());
           turtle.goTo(seg.id);
-          toRemove.add(seg.id);
+          //toRemove.add(seg.id);
+        }
+        else{
+          turtle.goTo(seg.id);
         }
       }
       newWord.add(newSegment);
@@ -226,21 +232,10 @@ class ParametricLSystem{
 
   }
   
-  void drawSystem(){
-    pushMatrix();
-    pushStyle();
-    translate(xPos, yPos);
-    for(Module m : word.modules){
-       m.drawFunction();
-    }
-    popStyle();
-    popMatrix();
-  }
-  
   void drawSystemSegments(){
     pushMatrix();
     pushStyle();
-    translate(xPos, yPos);
+    turtle.moveTo(xPos, yPos, zPos);
     turtle.drawSegments(word.segmentIDs);
     popStyle();
     popMatrix();
@@ -268,8 +263,18 @@ class ParametricLSystem{
   void setSizeFactor(float f){
     
   }
+  void setPosition(float px,float py, float pz){
+    this.xPos = px;
+    this.yPos =py;
+    this.zPos =pz;
+
+  }
   void setPosition(float px,float py){
     this.xPos = px;
     this.yPos =py;
+  }
+  
+  PVector getPosition(){
+    return new PVector(this.xPos, this.yPos, this.zPos);
   }
 }

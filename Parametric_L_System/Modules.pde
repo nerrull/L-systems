@@ -8,6 +8,13 @@ class F extends Module{
   void drawFunction(){
     turtle.forward(getP("distance"));
   }
+  
+  void drawFunction(PShape s){
+    addVertex(s, turtle.position);
+    turtle.forward(getP("distance"));
+    addVertex(s, turtle.position);
+  }
+  
   String repr(){
      return "";
     //return "F" +"("+getP("distance")+")";
@@ -95,7 +102,7 @@ class Move extends Module{
   }
 
   void drawFunction(){
-    translate(0,getP("distance"));
+    turtle.move(getP("distance"));
   }
 }
 
@@ -128,7 +135,7 @@ class Green extends Module{
     stroke(0,200,0); 
   }
   void drawFunction(PShape p){
-    p.stroke(0,200,0); 
+    //p.stroke(0,200,0); 
     //p.fill(0,200,0);
   }
 }
@@ -157,7 +164,7 @@ class Purple extends Module{
     stroke(255,0,200); 
   }
     void drawFunction(PShape p){
-    p.stroke(255,0,200); 
+    //p.stroke(255,0,200); 
     //p.fill(255,0,200);
   }
 }
@@ -212,6 +219,16 @@ class EndCut extends Module{
   }
 }
 
+class DelayModule extends Module{
+  Module output;
+  
+  DelayModule(float age, Module out){
+    super("D");
+    this.addParam("age", age);
+    output = out;
+  }
+}
+
 class Segment extends Module{
   UUID id;
   Segment(){
@@ -252,3 +269,59 @@ class Rradial extends Module{
       turtle.Rl(getP("angle"));
     }
   }
+  
+  
+  class TimedRotation extends Module{
+    Module rotationModule;
+    float start_age;
+
+    TimedRotation( float age, float angle, Module m){
+      super("TR");
+      addParam("age", age);
+      addParam("angle", angle);
+      rotationModule =m;
+      start_age = age;
+    }
+  
+    
+    String repr(){
+      return "TR" +"("+getP("age")+")";
+    }
+    void updateAngle(){
+      this.rotationModule.updateParam("angle", getP("angle") *(start_age - getP("age"))/start_age);
+    }
+    
+    void drawFunction(){
+      rotationModule.drawFunction();
+    }
+  }
+  
+  
+//Growing module
+ class I extends Module{
+    I(float age){
+      super("I");
+      addParam("age", age);
+      addParam("start_age", age);
+    }
+    
+    void drawFunction(PShape s){
+      addVertex(s, turtle.position);
+      float distance = getP("start_age") - getP("age");
+      turtle.forward(distance);
+      addVertex(s, turtle.position);
+    }
+  
+    void drawFunction(){
+      float distance = getP("start_age") - getP("age");
+      turtle.forward(distance);
+    }
+    
+    String repr(){
+      return "I" +"("+getP("age")+")";
+    }
+    
+    Module grow(){
+      return this;
+    }
+  }   

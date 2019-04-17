@@ -163,31 +163,3 @@ class WordTree{
     currentWord= (ArrayList<Node<Module>>) nextWord.clone();
   }
 }
-
-
-
-/*
-
-  float updateTree(){
-    float t,t0;
-
-    t0 = millis();
-
-    ArrayList<Node<Module>> nodes = wordTree.currentWord();
-    Iterator<Node<Module>> iter  = nodes.iterator();
-    Node<Module> m;
-    String letter;
-    while (iter.hasNext()){
-      m =iter.next();
-      letter = m.data.letter;
-      if(rules.containsKey(letter)){
-        wordTree.add(m, rules.get(letter).rule(m.data));
-      }
-    }
-    wordTree.updateWord();
-    t = millis() -t0;
-
-    return t;
-  }
-  
-*/
