@@ -9,6 +9,14 @@ class F extends Module{
     turtle.forward(getP("distance"));
   }
   
+  int drawFunction(PShape s, int i){
+    replaceVertex(s, turtle.position, i);
+    i++;
+    turtle.forward(getP("distance"));
+    replaceVertex(s, turtle.position, i);
+    return 2;
+  }
+   
   void drawFunction(PShape s){
     addVertex(s, turtle.position);
     turtle.forward(getP("distance"));
@@ -16,8 +24,20 @@ class F extends Module{
   }
   
   String repr(){
-     return "";
-    //return "F" +"("+getP("distance")+")";
+     //return "";
+    return "F" +"("+getP("distance")+")";
+  }
+}
+
+class Fill extends Module{
+  Fill(){
+    super("Fill");
+  }
+
+
+  String repr(){
+     //return "";
+    return "Fill";
   }
 }
 
@@ -174,11 +194,11 @@ class White extends Module{
   }
 
   void drawFunction(){
-    stroke(255,255,255); 
+    //stroke(255,255,255); 
   }
   
   void drawFunction(PShape p){
-    p. stroke(255,255,255); 
+    //p. stroke(255,255,255); 
   }
 }
 class Dollar extends Module{
@@ -237,11 +257,20 @@ class Segment extends Module{
   }
 }
 
+class ID extends Module{
+  UUID id;
+  ID(UUID id){
+    super("ID");
+    this.id = id;
+  }
+}
+
 class SegmentMerge extends Module{
   SegmentMerge(){
     super("MERGE");
   }
 }
+
 class Rradial extends Module{
      Rradial( float angle){
       super("Radial");
@@ -287,6 +316,7 @@ class Rradial extends Module{
     String repr(){
       return "TR" +"("+getP("age")+")";
     }
+    
     void updateAngle(){
       this.rotationModule.updateParam("angle", getP("angle") *(start_age - getP("age"))/start_age);
     }
@@ -303,6 +333,16 @@ class Rradial extends Module{
       super("I");
       addParam("age", age);
       addParam("start_age", age);
+    }
+    
+        
+    int drawFunction(PShape s, int i){
+      replaceVertex(s, turtle.position, i);
+      float distance = getP("start_age") - getP("age");
+      i++;
+      turtle.forward(distance);
+      replaceVertex(s, turtle.position, i);
+      return 2;
     }
     
     void drawFunction(PShape s){
@@ -325,3 +365,64 @@ class Rradial extends Module{
       return this;
     }
   }   
+  
+
+  class IR extends Module{
+    IR(float age){
+      super("IR");
+      addParam("age", age);
+      addParam("axial_range", radians(3));
+      addParam("radial_range", radians(3));
+
+    }
+    IR(float age, float axial_range, float radial_range){
+      super("IR");
+      addParam("age", age);
+      addParam("axial_range", axial_range);
+      addParam("radial_range", radial_range);
+    }
+    String repr(){
+      return "IR" +"("+getP("age")+")";
+    }
+    
+  }
+  class X extends Module{
+    X(float age){
+      super("X");
+      addParam("age", age);
+    }
+    
+    String repr(){
+      return "X" +"("+getP("age")+")";
+    }
+  }
+  
+  class LeafPointer extends Module{
+    String leafType;
+    LeafPointer( float age, float maxAge, String type){
+      super("LP");
+      addParam("age", age);
+      addParam("maxAge", maxAge);
+      leafType = type;
+    }
+
+    void drawFunction(PGraphics p ){
+      leafManager.drawLeaf(leafType, getP("age")/getP("maxAge"), p);
+    }
+    
+    String repr(){
+      return "LP" +"("+leafType+ " , "+getP("age")+ " , " + getP("maxAge")+")";
+    }
+  }
+  
+  class Leaf extends Module{
+    Leaf( float age, float size){
+      super("L");
+      addParam("age", age);
+      addParam("size", size);
+    }
+    
+    String repr(){
+      return "L" +"("+getP("age")+ "," +getP("size")+")";
+    }
+  }

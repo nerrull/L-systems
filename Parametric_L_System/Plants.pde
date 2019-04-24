@@ -13,8 +13,7 @@ class SimplePlant extends ParametricLSystem{
   void defineRules(){   
     //"F"-> "F[+F]F[-F]F");
     rules.put("F", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+      public void rule(Module m, ArrayList<Module> ret) { 
         ret.add(new F(forward_length));
         ret.add(new LBrack());
         ret.add(new Plus(angle));
@@ -26,7 +25,6 @@ class SimplePlant extends ParametricLSystem{
         ret.add(new F(forward_length));
         ret.add(new RBrack());
         ret.add(new F(forward_length));
-        return ret;
       };
     }); 
   }
@@ -48,7 +46,7 @@ class SimpleGrowingPlant extends ParametricLSystem{
   }
   
   void update(){
-    super.update();
+    //super.update();
     time +=timeStep;
   }  
   
@@ -92,11 +90,11 @@ class SimpleGrowingPlant extends ParametricLSystem{
   void defineRules(){   
     //"Al(2)"-> "Al(0)Ar(1)");
     rules.put("Al", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float terminal_age = m.getP("terminal");
         
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age <terminal_age){
           m.updateParam("age", age+timeStep);
           ret.add(m);
@@ -109,16 +107,16 @@ class SimpleGrowingPlant extends ParametricLSystem{
           //ret.add(new RBrack());
 
         }
-        return ret;
+        
       };
     }); 
     
     //"Ar(2)"-> "Al(1)Ar(0)");
     rules.put("Ar", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float terminal_age = m.getP("terminal");
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age<terminal_age){
           m.updateParam("age", age+timeStep);
           ret.add(m);
@@ -128,7 +126,7 @@ class SimpleGrowingPlant extends ParametricLSystem{
           ret.add(new Al(forward_length, 1,2));
           ret.add(new Ar(forward_length, 0,2));
         }
-        return ret;
+        
       };
     }); 
   }
@@ -146,7 +144,7 @@ class SimpleBranchingPlant extends ParametricLSystem{
   }
   
   void update(){
-    super.update();
+    //super.update();
     time +=timeStep;
   }  
   
@@ -225,12 +223,12 @@ class SimpleBranchingPlant extends ParametricLSystem{
   void defineRules(){   
     //(a, 1) → (s, 0)[(b, 0)][(b, 0)](a, 0)
     rules.put("A", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float terminal_age = m.getP("terminal");
         float Aa = m.getP("distance");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age <terminal_age){
           m.updateParam("age", age+timeStep);
           ret.add(m);
@@ -247,16 +245,16 @@ class SimpleBranchingPlant extends ParametricLSystem{
           ret.add(new RBrack());
           ret.add(new A(forward_length, 0,1));
         }
-        return ret;
+        
       };
     }); 
     
     // (b, β) → (a, 0)
     rules.put("B", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float terminal_age = m.getP("terminal");
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age<terminal_age){
           m.updateParam("age", age+timeStep);
           ret.add(m);
@@ -264,14 +262,14 @@ class SimpleBranchingPlant extends ParametricLSystem{
         else{
           ret.add(new A(forward_length, 0,1));
         }
-        return ret;
+        
       };
     }); 
     rules.put("S", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float terminal_age = m.getP("terminal");
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age<terminal_age){
           m.updateParam("age", age+timeStep);
           ret.add(m);
@@ -280,7 +278,7 @@ class SimpleBranchingPlant extends ParametricLSystem{
           m.updateParam("age", age+timeStep);
           ret.add(m);
         }
-        return ret;
+        
       };
     }); 
   }
@@ -304,7 +302,7 @@ class Crocus extends ParametricLSystem{
   }
   
   void update(){
-    super.update();
+    //super.update();
     time +=timeStep;
   }  
   
@@ -357,10 +355,10 @@ class Crocus extends ParametricLSystem{
   void defineRules(){   
     //(a, 1) → (s, 0)[(b, 0)][(b, 0)](a, 0)
     rules.put("A", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age <Ta){
           ret.add(new F(1));
           ret.add(new LBrack());
@@ -374,47 +372,47 @@ class Crocus extends ParametricLSystem{
           ret.add(new F(5));
           ret.add(new Flower(0));
         }
-        return ret;
+        
       }
     });
 
       
     rules.put("L", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age <Tl){
           ret.add(new Leaf(age +1));
         }
         else {
           ret.add(m);
         }
-        return ret;
+        
       }
     });
 
       
     rules.put("K", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age <Tk){
           ret.add(new Flower(age +1));
         }
         else {
           ret.add(m);
         }
-        return ret;
+        
       }
     });
  
     rules.put("F", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float d = m.getP("distance");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (d <2){
           ret.add(new F(d +0.2));
         }
@@ -422,7 +420,7 @@ class Crocus extends ParametricLSystem{
           ret.add(m);
         }
         
-        return ret;
+        
       };
     }); 
   }

@@ -1,4 +1,3 @@
-
 class LychnisCoronaria extends ParametricLSystem{
 
   float angle,angle2, forward_length, time, timeStep;
@@ -54,7 +53,7 @@ class LychnisCoronaria extends ParametricLSystem{
   }
   
   void update(){
-    super.update();
+    //super.update();
     time +=timeStep;
   }  
   
@@ -146,8 +145,7 @@ class LychnisCoronaria extends ParametricLSystem{
     
     String repr(){
       return "IR" +"("+getP("age")+")";
-    }
-    
+    }    
   }
 
 
@@ -157,14 +155,13 @@ class LychnisCoronaria extends ParametricLSystem{
     // a(t) : t=0 → [&(70)L]/(137.5)I(10)A
 
     rules.put("A", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         leaf_interval = random(leaf_interval_mean-2, leaf_interval_mean+2);
         float flower_interval = random(3, 6)*size_factor;
         float age = m.getP("age");
-        
-        ArrayList<Module> ret = new  ArrayList<Module>();
+               
         if (age<7.){
-          println(age+timeStep);
+          //println(age+timeStep);
           ret.add(new A(age+timeStep));
         }
         else{
@@ -205,32 +202,28 @@ class LychnisCoronaria extends ParametricLSystem{
           ret.add(new DelayedFlower(10));
       
         }
-        return ret;
+        
       }
     });
     
     rules.put("I", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
-        if (age >0){
-         
+        
+        if (age >0){         
           ret.add(new F(growth_step));
           ret.add(new I(age-growth_step));
         }
         else {
           ret.add(new F(growth_step));
-        }
-        return ret;
+        }        
       }
     });
     
     rules.put("IR", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
-
-        ArrayList<Module> ret = new  ArrayList<Module>();
         if (age >0){
           ret.add(new Raxial(random(-axial_range, axial_range)));
           ret.add(new Rradial(random(-radial_range, radial_range)));
@@ -240,57 +233,55 @@ class LychnisCoronaria extends ParametricLSystem{
         }
         else {
           ret.add(new F(growth_step));
-        }
-        return ret;
+        }       
       }
     });
     
     rules.put("D", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age >0){
           ret.add(new DelayedFlower(age-growth_step));
         }
         else {
           if (n_flowers >max_flowers){
-            return ret;
+            return;
           }
           ret.add(new K());
           n_flowers ++;
 
         }
-        return ret;
+        
       }
     });
     
    rules.put("u", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float angle = m.getP("angle");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age >0){
           ret.add(new And(radians(angle*growth_step)));
           ret.add(new U(age-growth_step, angle));
         }
-        return ret;
+        
       }
     });
     rules.put("MERGE", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        return new  ArrayList<Module>();
+      public void rule(Module m, ArrayList<Module> ret) { 
       }
     });
      //L : *  ->[{.-FI(7)+FI(7)+FI(7)}]
      //         [{.+FI(7)-FI(7)-FI(7)}]
     rules.put("L", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float size = m.getP("size");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         float angle = radians(7);
         ret.add(new LBrack());
         ret.add(new Minus(angle));
@@ -317,13 +308,13 @@ class LychnisCoronaria extends ParametricLSystem{
         ret.add(new I(size));
         ret.add(new RBrack());
 
-        return ret;
+        
       }
     });
     
     rules.put("K", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+      public void rule(Module m, ArrayList<Module> ret) { 
+        
         float flowerSize=  3*size_factor;
         float angle = radians(18);
         ret.add(new LBrack());
@@ -350,7 +341,7 @@ class LychnisCoronaria extends ParametricLSystem{
         ret.add(new I(flowerSize));
         ret.add(new RBrack());
         ret.add(new Slash(radians(90)));
-        return ret;
+        
       }
     });
       

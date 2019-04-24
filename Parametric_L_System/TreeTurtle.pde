@@ -1,106 +1,15 @@
-import java.util.ArrayDeque; //<>//
+import java.util.ArrayDeque; //<>// //<>//
 
 void translate(PVector p) {
   translate(p.x, p.y, p.z);
 }
 
-class Wind {
-  float amount = 0; 
-  float fluctuation = 1000; 
-
-  void update(float strength) {
-    amount = (noise(frameCount/1000.) -0.5)*strength;
-    //println("Wind amoun"+ amount);
-  }
-}
-
-Wind wind= new Wind();
-int sign(float v){
-  if (v>=0) return 1;
-  else return -1;
-}
-
 void addVertex(PShape s, PVector p) {
     s.vertex(p.x, p.y, p.z);
 }
-class SegmentShape {
-  PVector startPos;
-  PVector endPos;
-  PVector H, L, U;
-  PVector Hend, Lend, Uend;
 
-  PShape shape;
-
-  ArrayDeque<PVector> hstack;
-  ArrayDeque<PVector> lstack;
-  ArrayDeque<PVector> ustack;
-  ArrayDeque<PVector> pstack;
-  ShapeTurtle t;
-  SegmentShape() {
-    shape = createShape();
-  }
-  void printword(ArrayList<Module> modules) {
-    println();
-    for (Module m : modules) {
-      print(m.repr());
-    }
-  }
-
-  void generateShape(ArrayList<Module> modules) {
-
-    shape = createShape();
-
-    shape.beginShape(LINES);
-    shape.stroke(0);
-    shape.strokeWeight(2);
-
-    int index = 0;
-    for (Module m : modules) {
-      index++;
-      if (m.letter=="]") {
-        if (turtle.depth ==0) {
-          println("Failed at module : "+index);
-          printword(modules);
-          print("WAAAT");
-        }
-        turtle.pop();
-      } else {
-        m.drawFunction(shape);
-      }
-    }
-    shape.endShape(CLOSE);
-    Hend = turtle.H.copy();
-    Lend = turtle.L.copy();
-    Uend = turtle.U.copy();
-    endPos = turtle.position.copy();
-    hstack = new ArrayDeque<PVector> (turtle.hstack);
-    lstack = new ArrayDeque<PVector> (turtle.lstack);
-    ustack = new ArrayDeque<PVector> (turtle.ustack);
-    pstack = new ArrayDeque<PVector> (turtle.pstack);
-  }
-
-  void addVertex(PVector p) {
-    shape.vertex(p.x, p.y, p.z);
-  }
-
-  void drawShape() {    
-    shape(shape);
-  }
-
-  void drawShape(PGraphics c) {    
-    c.shape(shape);
-  }
-
-  void goToEnd() {
-    turtle.L = Lend.copy();
-    turtle.H = Hend.copy();
-    turtle.U = Uend.copy();
-    turtle.position = endPos.copy();
-    turtle.hstack = new ArrayDeque<PVector> (hstack);    
-    turtle.lstack = new ArrayDeque<PVector> (lstack);
-    turtle.ustack = new ArrayDeque<PVector> (ustack);
-    turtle.pstack = new ArrayDeque<PVector> (pstack);
-  }
+void replaceVertex(PShape s, PVector p, int index) {
+    s.setVertex(index, p.x, p.y, p.z);
 }
 
 //From p.19
@@ -116,7 +25,7 @@ class ShapeTurtle {
   ArrayDeque<PVector> lstack;
   ArrayDeque<PVector> ustack;
   ArrayDeque<PVector> pstack;
-  HashMap<UUID, SegmentShape> shapes;
+  TurtleState neutralState;
 
   ShapeTurtle() {
     U = new PVector(0, -1, 0);
@@ -125,13 +34,13 @@ class ShapeTurtle {
     V = new PVector(0, 0, -1);
     T = new PVector(0, 0, -1);
     position = new PVector(0, 0, 0);
-
+    
+    neutralState = new TurtleState(this);
     e = 0.0;
     hstack = new ArrayDeque<PVector>();
     lstack = new ArrayDeque<PVector>();
     ustack = new ArrayDeque<PVector>();
     pstack = new ArrayDeque<PVector>();
-    shapes = new HashMap<UUID, SegmentShape>(); 
     canvas =null;
   }
 
@@ -139,42 +48,6 @@ class ShapeTurtle {
     this.canvas =c;
   }
 
-  void updateSegment(UUID id, ArrayList<Module> segment) {
-    if (!shapes.containsKey(id)) {
-      shapes.put(id, new SegmentShape());
-    }
-    shapes.get(id).generateShape(segment);
-  }
-
-
-  void removeSegment(UUID id) {
-    shapes.remove(id);
-  }
-
-  void goTo(UUID id) {
-    shapes.get(id).goToEnd();
-  }
-
-  void drawSegments(ArrayList<UUID> segmentIds) {
-    if (segmentIds == null) {
-      return;
-    }
-
-    if (this.canvas!=null) {
-      canvas.pushMatrix();
-      canvas.translate(turtle.position.x, turtle.position.y, turtle.position.z);
-    }
-    for (UUID id : segmentIds) {
-      if (this.canvas!=null) {
-        shapes.get(id).drawShape(this.canvas);
-      } else {
-        shapes.get(id).drawShape();
-      }
-    } 
-    if (this.canvas!=null) {
-      canvas.popMatrix();
-    }
-  }
 
   void moveTo(float x, float y) {
     turtle.position.x = x;
@@ -187,6 +60,18 @@ class ShapeTurtle {
     turtle.position.z = z;
   }
   
+  void applyState(TurtleState s){
+    H = s.H.copy();
+    L = s.L.copy();
+    U = s.U.copy();
+    position = s.pos.copy();
+  }
+  
+  void applyStateOrientation(TurtleState s){
+    H = s.H.copy();
+    L = s.L.copy();
+    U = s.U.copy();
+  }
   void reset() {
     U = new PVector(0, 0, 1);
     L = new PVector(-1, 0, 0);
@@ -261,7 +146,6 @@ class ShapeTurtle {
     this.e = e;
   }
 
-
   void  applyTropism() {
     PVector axis = new PVector();
     H.cross(T, axis);
@@ -300,4 +184,187 @@ class ShapeTurtle {
     U = new PVector(U.dot(r1), U.dot(r2), U.dot(r3)); 
     normalizeDirections();
   }
+}
+
+
+class TurtleState{
+  PVector pos;
+  PVector H, L, U;
+  int shapeType;
+
+  TurtleState(ShapeTurtle turtle){
+    H = turtle.H.copy();
+    L = turtle.L.copy();
+    U = turtle.U.copy();
+    pos = turtle.position.copy();
+  }
+  
+  TurtleState(TurtleState ts){
+    H = ts.H.copy();
+    L = ts.L.copy();
+    U = ts.U.copy();
+    pos = ts.pos.copy();
+  }
+  
+  void update(ShapeTurtle turtle){
+    H = turtle.H.copy();
+    L = turtle.L.copy();
+    U = turtle.U.copy();
+    pos = turtle.position.copy();
+  }
+  
+  TurtleState add(TurtleState ts){
+    this.pos = this.pos.add(ts.pos);
+    return new TurtleState(this);
+  }
+
+  void applyToCanvas(PGraphics c){
+
+  }
+}
+
+
+class LeafShape{
+  PShape shape;
+  TurtleState state;
+
+  LeafShape(TurtleState ts, PShape s){
+    this.shape =s;
+    this.state= ts;
+
+  }
+
+  void draw(PGraphics c){
+    pushMatrix();
+    popMatrix();
+  }
+
+}
+
+int LINE_SHAPE = 0;
+int SOLID_SHAPE = 1;
+class WordShape {
+  PShape shape;
+  TurtleState state;
+  int n_draws;
+  int shapeType;
+  color fillColor;
+  boolean shapeBegun;
+  WordShape() {
+    shape = createShape();
+    n_draws =0;
+    shapeType = LINE_SHAPE;
+    fillColor = color(0);
+  }
+  
+  void setTurtleState(TurtleState ts){
+    this.state = ts;
+  }
+  
+  void printword(ArrayList<Module> modules) {
+    println();
+    for (Module m : modules) {
+      print(m.repr());
+    }
+  }
+  
+  void generateShape(Iterator<Module> it,  HashMap<UUID, NodeWord> children, boolean reset){
+    //n_draws = 5;
+    //generateShape( it, children);
+  }
+  
+  void beginShape(){
+    if (this.shapeType ==LINE_SHAPE){
+      shape.beginShape();
+      shape.noFill();
+      shape.stroke(0);
+      shape.strokeWeight(2);
+    }
+    else{
+      shape.beginShape();
+      shape.fill(fillColor);
+      shape.stroke(0);
+      shape.strokeWeight(2);
+    }
+    shapeBegun =true;
+  }
+  
+  void endShape(){
+     if (this.shapeType ==LINE_SHAPE){
+       shape.endShape();
+     }
+     else {
+       shape.endShape(CLOSE);
+     }
+  }
+  
+  void generateShape(Iterator<Module> it,  HashMap<UUID, NodeWord> children) {
+    shapeBegun =false;
+    turtle.reset();
+    turtle.applyStateOrientation(this.state);
+    n_draws++;
+    
+    //Dunno why but need to recreate the damn shape when we make filled shapes?
+    //Animations on leaves don't work if we don't createShape
+    //if(n_draws >5){
+    //  shape = createShape();
+    //  n_draws =0;
+    //}
+    
+    int oldShapeCount =shape.getVertexCount();
+
+    int index = 0;
+    if (oldShapeCount ==0){
+       beginShape();
+    }
+    Module m;
+    while(it.hasNext()) {
+      m= it.next();
+      //LeafPointer
+      //if (m.letter == "LP"){
+      //  LeafPointer l  = (LeafPointer )m;
+      //  this.shape.addChild(leafManager.get);        
+      //  NodeWord child = children.get(i.id);
+      //  TurtleState ts = new TurtleState(turtle);
+      //  child.updateTurtleState(ts);
+      //}
+
+      if (m.letter == "ID"){
+        ID i  = (ID )m;        
+        NodeWord child = children.get(i.id);
+        TurtleState ts = new TurtleState(turtle);
+        child.updateTurtleState(ts);
+      }
+      if (index  <oldShapeCount){
+        try{
+          index +=m.drawFunction(shape, index);
+        }
+        catch (Exception e){
+          println("why");
+        }
+        if (index >=oldShapeCount){
+          this.beginShape();
+        }
+      }
+      else {
+        try{m.drawFunction(shape);}
+        catch (Exception e){
+          println("why");
+        }
+        index++;
+      }
+    }
+    if (shapeBegun){
+      this.endShape();
+    }
+  }
+
+  void drawShape(PGraphics c) {   
+    c.shape(shape);
+  }
+  
+  void translate(PGraphics c){
+    c.translate(this.state.pos.x,this.state.pos.y,this.state.pos.z);
+  }
+  
 }

@@ -3,7 +3,6 @@ class SheperdsPurse extends ParametricLSystem{
 
   float angle,angle2, forward_length, time, timeStep;
   float Ta, Tl, Tk;
-  float growth_step, axial_range, radial_range;
   int n_flowers, max_flowers;
   int leaf_size;
   int leaf_interval_mean;
@@ -20,8 +19,8 @@ class SheperdsPurse extends ParametricLSystem{
     growth_step = 0.1;
     size_factor =1.;
     n_flowers = 0;
-    max_flowers =(int) random(2,5);
-    int num_leaves  =(int) random(2,10);
+    max_flowers =(int) random(2,4);
+    int num_leaves  =(int) random(2,6);
     
     leaf_size = 4;
     leaf_interval_mean = 9;
@@ -29,7 +28,7 @@ class SheperdsPurse extends ParametricLSystem{
     axial_range = radians(10)*growth_step;
     radial_range = radians(10)*growth_step;
     
-    leaf_angle= 70;
+    leaf_angle= 55;
     angle_variance = 10;
     
     defineRules();
@@ -39,6 +38,7 @@ class SheperdsPurse extends ParametricLSystem{
     word.add(new Rradial(random(0,radians(360))));
     word.add(new I(leaf_interval));
     word.add(new A(num_leaves));
+    wordTree.init(word.modules);
 
   }
   
@@ -55,7 +55,7 @@ class SheperdsPurse extends ParametricLSystem{
   }
   
   void update(){
-    super.update();
+    //super.update();
     time +=timeStep;
   }  
   
@@ -93,6 +93,13 @@ class SheperdsPurse extends ParametricLSystem{
   class BigA extends Module{
     BigA( ){
       super("A");
+      addParam("stem", 1.);
+
+    }
+    
+    BigA( float stem){
+      super("A");
+      addParam("stem", stem);
     }
   
     void drawFunction(){
@@ -133,56 +140,7 @@ class SheperdsPurse extends ParametricLSystem{
     }
   }
   
-  class DelayedFlower extends Module{
-    DelayedFlower(float age){
-      super("D");
-      this.addParam("age", age);
-    }
-    
-    void drawFunction(){
-    }
-    
-    String repr(){
-      return "D";
-    }
-  }
   
-  
- class I extends Module{
-    I(float age){
-      super("I");
-      addParam("age", age);
-
-    }
-  
-    void drawFunction(){
-
-    }
-    
-    String repr(){
-      return "I" +"("+getP("age")+")";
-    }
-    
-    Module grow(){
-      return this;
-    }
-  }
-   class IR extends Module{
-    IR(float age){
-      super("IR");
-      addParam("age", age);
-
-    }
-  
-    void drawFunction(){
-
-    }
-    
-    String repr(){
-      return "IR" +"("+getP("age")+")";
-    }
-    
-  }
   class X extends Module{
     X(float age){
       super("X");
@@ -218,17 +176,17 @@ class SheperdsPurse extends ParametricLSystem{
     // a(t) : t=0 → [&(70)L]/(137.5)I(10)A
 
     rules.put("a", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         leaf_interval = random(leaf_interval_mean-2, leaf_interval_mean+2)*size_factor;
-        float la=  leaf_angle + random(- angle_variance, angle_variance);
-        ArrayList<Module> ret = new  ArrayList<Module>();
-        if (age <=0){
+        float la=  radians(leaf_angle + random(- angle_variance, angle_variance));
+        
+        if (age <=0 ){
           ret.add(new Segment());
           ret.add(new Green());
           ret.add(new LBrack());
           //ret.add(new And(angle_variance));
-          ret.add(new U(4, la/4.));
+          ret.add(new TimedRotation(10, la, new And(radians(3))));
           ret.add(new Leaf(0, random(leaf_size -1,leaf_size +1)));
           ret.add(new RBrack());
           ret.add(new Segment());
@@ -237,6 +195,7 @@ class SheperdsPurse extends ParametricLSystem{
           ret.add(new IR(leaf_interval));
           ret.add(new BigA());
         }
+        
         else if (age >0){
           if (age - floor(age) < growth_step){
 
@@ -244,7 +203,7 @@ class SheperdsPurse extends ParametricLSystem{
             ret.add(new Green());
             ret.add(new LBrack());
             //ret.add(new And(10));
-            ret.add(new U(4, la/4.));
+            ret.add(new TimedRotation(10, la, new And(radians(3))));
             ret.add(new Leaf(0, random(leaf_size -1,leaf_size +1)));
             ret.add(new RBrack());
             ret.add(new Segment());
@@ -254,18 +213,20 @@ class SheperdsPurse extends ParametricLSystem{
           }
           ret.add(new A(age -growth_step));
         }
-        return ret;
+        
       }
     });
 
 
     //[&(18)u(4)FFI(10)I(5)X(5)KKKK]/(137.5)I(8)A
     rules.put("A", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         leaf_interval = random(leaf_interval_mean-2, leaf_interval_mean+2);
-        float flower_interval = random(3, 6)*size_factor;
+        float stem = m.getP("stem");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        float flower_interval = random(3, 6)*size_factor*stem;
+
+        n_flowers++;
         ret.add(new Segment());
         ret.add(new Green());
         ret.add(new LBrack());
@@ -282,99 +243,57 @@ class SheperdsPurse extends ParametricLSystem{
         ret.add(new K());
         ret.add(new EndCut());
         ret.add(new RBrack());
-        ret.add(new Segment());
-        ret.add(new Green()); 
-        ret.add(new Slash(radians(137.5)));
-        ret.add(new IR(flower_interval));
-        ret.add(new DelayedFlower(10));
-        return ret;
-      }
-    });
-    
-    rules.put("I", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
-        if (age >0){
-         
-          ret.add(new F(growth_step));
-          ret.add(new I(age-growth_step));
-        }
-        else {
-          ret.add(new F(growth_step));
-        }
-        return ret;
-      }
-    });
-    
-    rules.put("IR", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
-        if (age >0){
-          ret.add(new Raxial(random(-axial_range, axial_range)));
-          ret.add(new Rradial(random(-radial_range, radial_range)));
-          
-          ret.add(new F(growth_step));
-          ret.add(new IR(age-growth_step));
+        if (n_flowers<max_flowers)
+        {       
+          ret.add(new Segment());
+          ret.add(new Green()); 
+          ret.add(new Slash(radians(137.5)));
+          ret.add(new IR(flower_interval));
+          ret.add(new DelayModule(flower_interval+2, new BigA()));
         }
-        else {
-          ret.add(new F(growth_step));
+        if (n_flowers==max_flowers)
+        {       
+          ret.add(new Segment());
+          ret.add(new Green()); 
+          ret.add(new Slash(radians(137.5)));
+          ret.add(new IR(flower_interval));
+          ret.add(new DelayModule(flower_interval, new BigA(0)));
         }
-        return ret;
-      }
-    });
-    
-    rules.put("D", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        float age = m.getP("age");
-
-        ArrayList<Module> ret = new  ArrayList<Module>();
-        if (age >0){
-          ret.add(new DelayedFlower(age-growth_step));
-        }
-        else {
-          if (n_flowers >max_flowers){
-            return ret;
-          }
-          ret.add(new BigA());
-          n_flowers ++;
-
-        }
-        return ret;
+        
       }
     });
     
    rules.put("u", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float angle = m.getP("angle");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age >0){
           ret.add(new And(radians(angle*growth_step)));
           ret.add(new U(age-growth_step, angle));
         }
-        return ret;
+        
       }
     });
+    
     rules.put("MERGE", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        return new  ArrayList<Module>();
+      public void rule(Module m, ArrayList<Module> ret) { 
       }
     });
      //L : *  ->[{.-FI(7)+FI(7)+FI(7)}]
      //         [{.+FI(7)-FI(7)-FI(7)}]
     rules.put("L", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
         float size = m.getP("size");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
         float angle = radians(7);
         ret.add(new LBrack());
+        ret.add(new Fill());
+        ret.add(new White());
         ret.add(new Minus(angle));
         ret.add(new F(.1));
         ret.add(new I(size));
@@ -387,7 +306,8 @@ class SheperdsPurse extends ParametricLSystem{
         ret.add(new RBrack());
         
         ret.add(new LBrack());
-
+        ret.add(new Fill());
+        ret.add(new White());
         ret.add(new Plus(angle));
         ret.add(new F(.1));
         ret.add(new I(size));
@@ -399,17 +319,16 @@ class SheperdsPurse extends ParametricLSystem{
         ret.add(new I(size));
         ret.add(new RBrack());
 
-        return ret;
+        
       }
     });
     
     rules.put("K", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+      public void rule(Module m, ArrayList<Module> ret) { 
         float flowerSize=  3*size_factor;
         float angle = radians(18);
         ret.add(new LBrack());
-        ret.add(new Purple());
+        ret.add(new Fill());
         ret.add(new And(angle));
         ret.add(new Plus(angle));
         //ret.add(new F(1));
@@ -419,8 +338,9 @@ class SheperdsPurse extends ParametricLSystem{
         //ret.add(new F(1));
         ret.add(new I(flowerSize));
         ret.add(new RBrack());
+
         ret.add(new LBrack());
-        ret.add(new Purple());
+        ret.add(new Fill());
         ret.add(new And(angle));
         ret.add(new Minus(angle));
         //ret.add(new F(1));
@@ -431,15 +351,15 @@ class SheperdsPurse extends ParametricLSystem{
         ret.add(new I(flowerSize));
         ret.add(new RBrack());
         ret.add(new Slash(radians(90)));
-        return ret;
+
       }
     });
       
     rules.put("X", new ParametricRule() {
-      public ArrayList<Module> rule(Module m) { 
+      public void rule(Module m, ArrayList<Module> ret) { 
         float age = m.getP("age");
 
-        ArrayList<Module> ret = new  ArrayList<Module>();
+        
         if (age >0){
           ret.add(new X(age -growth_step));
         }
@@ -472,7 +392,7 @@ class SheperdsPurse extends ParametricLSystem{
           ret.add(new RBrack());
           ret.add(new Cut());
         }
-        return ret;
+        
       }
     });
   }
