@@ -166,9 +166,11 @@ class NodeWord{
         }
         else if(m.letter == "Fill"){
           this.shape.shapeType = SOLID_SHAPE;
+          modules.add(m);
         }
         else if(m.letter == "White"){
           this.shape.fillColor = color(255);
+          modules.add(m);
         }
         else if(m.letter == "]"){
           isDirty = true;
@@ -251,11 +253,11 @@ class NodeWord{
       }
       
     }
-    print ( ")~");
+    print ( ")~"); //<>//
 
   }
   
-  //<>// //<>//
+  //<>// //<>// //<>//
   void drawShape(PGraphics p){
     p.pushMatrix();
     shape.translate(p); 

@@ -90,30 +90,35 @@ void initMidi(){
         field.reset();
         break;
       case 49:
-      
         field.setGrowthRate(v, true);
         break;
         
       case 50:
-        v = map(value, 0,127,-1.,1.);
-        //field.setWindSpeed(v);
+        v = map(value, 0,127,0.,1.);
+        controlFrame.saturationSlider.setValue(v);
         break;
       case 51:
         //field.setSunSpeed(v);
         break;
         
       case 53:
-        field.setSelectedIndex(max(min(field.plant_odds.size()-1, floor(v*field.plant_odds.size())), 0));
+        v = map(value, 0,127,100,500);
+        controlFrame.ageSlider.setValue(v);
+        //field.setSelectedIndex(max(min(field.plant_odds.size()-1, floor(v*field.plant_odds.size())), 0));
         //field.incrementSelected();
         break;
       case 54:
-        field.setOdds(field.selected_index, v, true);
+        SWAY = true;
+        v = map(value, 0,127,1,5);
+        controlFrame.camAngleSlider.setValue(v);
         break;
       case 55:
-        //field.setSunSpeed(v); //<>//
+        SWAY = true;
+        v = map(value, 0,127,0,.1);
+        controlFrame.camIncrementSlider.setValue(v);         //<>//
         break;
       case 56:
-        //field.setSunSpeed(v);
+        loadCamPosition();
         break;
       default:
         return;

@@ -5,7 +5,7 @@ class PlantField{
   boolean REMOVE = true;
   float windStength = 10.;
   float deathAge;
-  int maxPlants = 48;
+  int maxPlants = 80;
   //Controls
   PriorityQueue<Integer> q;
   PriorityQueue<Integer> slot_q;
@@ -22,6 +22,9 @@ class PlantField{
   ArrayList<Float> plant_odds;
   int selected_index=  0;
   float total_odds = 0;
+  ArrayList<SeedDrop> seeds;
+  ArrayList<SeedDrop> seedsToRemove;
+
 
   Sun2 sun;
   //Wind wind;
@@ -39,6 +42,9 @@ class PlantField{
     total_odds =5;
     growthRate = 0.1;
     deathAge = 100.;
+    seeds = new ArrayList<SeedDrop>(16);
+    seedsToRemove = new ArrayList<SeedDrop>(16);
+
   }
   
   void reset(){
@@ -55,6 +61,8 @@ class PlantField{
     }
     
     plants=  new HashMap<UUID,ParametricLSystem>(128);
+    seeds = new ArrayList<SeedDrop>(16);
+    seedsToRemove = new ArrayList<SeedDrop>(16);
   }
   
   void setXRange(float xmin, float xmax){
@@ -88,19 +96,22 @@ class PlantField{
     ParametricLSystem plant = getRandomPlant();
     float slot_width = (xMax -xMin)/n_slots/2;
     float slot_p = map(slot, 0, n_slots, xMin, xMax);
-    float xpos = slot_p +random(-slot_width, slot_width);
+    
+    float zfactor = map(zpos, 0, -200, 1,2);
+    float xpos = (slot_p +random(-slot_width, slot_width))*zfactor;
 
     plant.setPosition(xpos, yOff, zpos);
     plant.setStartState();
     plant.setGrowthRate(growthRate);
     //plant.setSizeFactor(random(0.5, 1));
-    plant.setSizeFactor(1);
+    plant.setSizeFactor(1.5);
     UUID  id = UUID.randomUUID();
     plants.put(id,plant);
 
     plantSlots[slot] = id;
     slotActive[slot] = true;
-          sendPercussiveNote(slot);
+    sendPercussiveNote(slot);
+    seeds.add(new SeedDrop(xpos, -250, zpos));
 
   }
   
@@ -111,14 +122,21 @@ class PlantField{
       addPlant((int)random(0, n_slots));
     }
     int slot;
-    if (slot_q.peek()!=null){ 
-      slot =(int) (slot_q.poll()*n_slots/24.) ;
-      updatePlantSlot(slot);
+    try{
+
+      if (slot_q.peek()!=null){ 
+           slot =(int) (slot_q.poll()*n_slots/24.) ;
+  
+        updatePlantSlot(slot);
+      }
+      
+      if (off_q.peek()!=null){ 
+        slot = (int) (off_q.poll()*n_slots/24.);
+        //slotActive[slot] =false;
+      }
     }
+    catch (Exception e){
     
-    if (off_q.peek()!=null){ 
-      slot = (int) (off_q.poll()*n_slots/24.);
-      //slotActive[slot] =false;
     }
       
    float t= 0;
@@ -134,6 +152,16 @@ class PlantField{
         //plants.get(plantSlots[i]).setGrowthRate(growthRate);
       }
    }
+    seedsToRemove.clear();
+     for (SeedDrop s : seeds){
+       s.update();
+       if (s.isDead()){
+         seedsToRemove.add(s);
+       }
+     }
+     for (SeedDrop s :seedsToRemove){
+       seeds.remove(s);
+     }
     
    ArrayList<UUID> toRemove = new ArrayList<UUID>(4);
    int n_plants = plants.keySet().size();
@@ -160,7 +188,11 @@ class PlantField{
     }
     
     //sun.draw(canvas, 20);
-    updateCamPosition();
+    
+    for (SeedDrop s : seeds){
+      s.draw(canvas);
+    
+    }
 } 
   
   void repr(){
@@ -332,3 +364,39 @@ int sign(float v){
   if (v>=0) return 1;
   else return -1;
 }
+
+class SeedDrop{
+  float x,y,z;
+  float speed =30;
+  
+  SeedDrop(float x, float y, float z){
+    this.x = x;
+    this.y = y;
+    this.z= z;
+  }
+  
+  void draw(PGraphics c){
+    c.pushMatrix();
+    c.fill(0);
+    c.stroke(0);
+    c.translate(x,y,z);
+    c.sphere(1);
+    c.popMatrix();
+    //c.pushMatrix();
+    //c.translate(x,0,z);
+    //c.fill(0);
+    //c.stroke(0);
+
+    //c.sphere(10);
+    //c.popMatrix();
+  }
+  
+  void update(){
+    y += speed;
+  }
+  boolean isDead(){
+    //return false;
+    return y >5;
+  }
+  
+};

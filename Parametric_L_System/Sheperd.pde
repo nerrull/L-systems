@@ -9,6 +9,7 @@ class SheperdsPurse extends ParametricLSystem{
   float leaf_interval;
   float size_factor;
   float leaf_angle, angle_variance;
+  color stem_color, flower_color, leaf_color;
   
   SheperdsPurse(){
     Ta =7;
@@ -21,7 +22,10 @@ class SheperdsPurse extends ParametricLSystem{
     n_flowers = 0;
     max_flowers =(int) random(2,4);
     int num_leaves  =(int) random(2,6);
-    
+    stem_color = colorPicker.getColor("STEM");
+    flower_color = colorPicker.getColor("SHEPERD");
+    leaf_color = colorPicker.getColor("LEAF");
+
     leaf_size = 4;
     leaf_interval_mean = 9;
     leaf_interval = random(leaf_interval_mean-2, leaf_interval_mean+2);
@@ -39,9 +43,7 @@ class SheperdsPurse extends ParametricLSystem{
     word.add(new I(leaf_interval));
     word.add(new A(num_leaves));
     wordTree.init(word.modules);
-
   }
-  
   
   void setGrowthRate(float g){
     this.growth_step= g;
@@ -183,7 +185,7 @@ class SheperdsPurse extends ParametricLSystem{
         
         if (age <=0 ){
           ret.add(new Segment());
-          ret.add(new Green());
+          ret.add(new Color(stem_color, true, false));
           ret.add(new LBrack());
           //ret.add(new And(angle_variance));
           ret.add(new TimedRotation(10, la, new And(radians(3))));
@@ -200,7 +202,7 @@ class SheperdsPurse extends ParametricLSystem{
           if (age - floor(age) < growth_step){
 
             ret.add(new Segment());
-            ret.add(new Green());
+            ret.add(new Color(stem_color, true, false));
             ret.add(new LBrack());
             //ret.add(new And(10));
             ret.add(new TimedRotation(10, la, new And(radians(3))));
@@ -223,7 +225,6 @@ class SheperdsPurse extends ParametricLSystem{
       public void rule(Module m, ArrayList<Module> ret) { 
         leaf_interval = random(leaf_interval_mean-2, leaf_interval_mean+2);
         float stem = m.getP("stem");
-
         float flower_interval = random(3, 6)*size_factor*stem;
 
         n_flowers++;
@@ -234,7 +235,9 @@ class SheperdsPurse extends ParametricLSystem{
         ret.add(new U(4,9));
         //ret.add(new F(1));
         //ret.add(new F(1));
-        ret.add(new IR(flower_interval));
+        if (stem >0){
+          ret.add(new IR(flower_interval));
+        }
         //ret.add(new IR(5));
         //ret.add(new X(20));
         ret.add(new K());
@@ -293,7 +296,7 @@ class SheperdsPurse extends ParametricLSystem{
         float angle = radians(7);
         ret.add(new LBrack());
         ret.add(new Fill());
-        ret.add(new White());
+        ret.add(new Color(leaf_color, true, true));
         ret.add(new Minus(angle));
         ret.add(new F(.1));
         ret.add(new I(size));
@@ -307,7 +310,7 @@ class SheperdsPurse extends ParametricLSystem{
         
         ret.add(new LBrack());
         ret.add(new Fill());
-        ret.add(new White());
+        ret.add(new Color(leaf_color, true, true));
         ret.add(new Plus(angle));
         ret.add(new F(.1));
         ret.add(new I(size));
@@ -328,6 +331,8 @@ class SheperdsPurse extends ParametricLSystem{
         float flowerSize=  3*size_factor;
         float angle = radians(18);
         ret.add(new LBrack());
+         ret.add(new Exclamation(0.1));
+        ret.add(new Color(flower_color, true, true));
         ret.add(new Fill());
         ret.add(new And(angle));
         ret.add(new Plus(angle));
@@ -341,6 +346,8 @@ class SheperdsPurse extends ParametricLSystem{
 
         ret.add(new LBrack());
         ret.add(new Fill());
+        ret.add(new Exclamation(0.1));
+        ret.add(new Color(flower_color, true, true));
         ret.add(new And(angle));
         ret.add(new Minus(angle));
         //ret.add(new F(1));

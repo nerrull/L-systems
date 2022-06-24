@@ -1,7 +1,6 @@
 import peasy.*;
 import javafx.util.Pair;
 
-Spout spout;
 ControlFrame controlFrame;
 
 ParametricLSystem plant;
@@ -9,6 +8,7 @@ PlantField field;
 ShapeTurtle turtle;
 Renderer render;
 LeafManager leafManager;
+ColorPicker colorPicker;
 
 ShapeTurtle getTurtle(){
   return turtle;
@@ -17,12 +17,15 @@ ShapeTurtle getTurtle(){
 PeasyCam cam;
 boolean DEBUG = true;
 boolean DRAW_AXES;
+boolean SWAY =false;
 
 void settings(){
-  size(1000, 600,P3D);
+  //size(1920, 950,P3D);
+  fullScreen(P3D);
 }
 
 void setup(){
+  SWAY = false;
   initMidi();
 
   render=  new Renderer(this);
@@ -30,12 +33,11 @@ void setup(){
   
   turtle=  new ShapeTurtle();
   turtle.setCanvas(render.getCanvas());
-  
-  //leafManager = new LeafManager();
+  colorPicker = new ColorPicker();
 
   field = new PlantField();
-  field.setXRange(-100, 100);
-  field.setZRange(-100, 0);
+  field.setXRange(-135, 135);
+  field.setZRange(-250, 0);
   field.setYOffset(0 );
 
 //  int nPlants =1;
@@ -49,16 +51,17 @@ void setup(){
   cam.setMinimumDistance(0);
   cam.setMaximumDistance(2000);
   cam.lookAt(0,0,0);
+  saveCamPosition();
  
   DRAW_AXES = false;
   background(255);
   
-  //Setup spout
-  spout = new Spout();
-  spout.initSender("FIELD", width, height);
   
   //Create control frame 
   controlFrame = new ControlFrame(this, 400,400, "Controls");
+  current_angle = 0;
+  angle_increment = -0.01;
+  max_rotation_angle = 15;
 
 }
 void drawAxes(){
@@ -74,7 +77,9 @@ void drawAxes(){
 void draw(){
   background(0);
   float t= millis();
-
+  if(SWAY){
+    updateCamPosition();
+  }
   field.update();
   float t2 = millis() -t;
   if (DEBUG && t2 >10){
@@ -98,7 +103,6 @@ void draw(){
     //println("Time spent drawing: "+ t2 );
   }
   //println("Time spent in draw: "+ (millis() -t0) );
-  spout.sendTexture();
 }
 
 
@@ -114,6 +118,31 @@ void keyPressed(){
   }
   if (key =='d'){
     DRAW_AXES = !DRAW_AXES;
+
+  }
+  if (key =='c'){
+    SWAY = !SWAY;
+    println("SWAY " + SWAY);
+
+  }
+  
+  if (key =='a'){
+      Note note = new Note(15,64, 75);
+      println();
+      println("Percussive Note On:");
+      println("--------");
+      println("Channel:"+note.channel());
+      println("Pitch:"+note.pitch());
+      println("Velocity:"+note.velocity());
+      myBus.sendNoteOn(note);
+
+  }
+  if (key =='s'){
+    saveCamPosition();
+  }
+  
+  if (key =='l'){
+    loadCamPosition();  
 
   }
   //plant.printWord();

@@ -1,4 +1,4 @@
-import java.util.ArrayDeque; //<>// //<>//
+import java.util.ArrayDeque; //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
 
 void translate(PVector p) {
   translate(p.x, p.y, p.z);
@@ -241,6 +241,110 @@ class LeafShape{
 
 }
 
+class ColorPicker{
+  ArrayList<Integer> tulipFlowerColors;
+  ArrayList<Integer> sheperdFlowerColors;
+  ArrayList<Integer>  stemColors;
+  ArrayList<Integer>  woodyColors;
+  ArrayList<Integer>  leafColors;
+  ArrayList<Integer>  leafTipColors;
+  ArrayList<Integer>  grassColors;
+
+
+  float sat;
+  ColorPicker(){
+    sat =1.;
+    tulipFlowerColors = new ArrayList<Integer>();
+    tulipFlowerColors.add(unhex("FFb03900"));
+    tulipFlowerColors.add(unhex("FFd48101"));
+    tulipFlowerColors.add(unhex("FFccb361"));
+    tulipFlowerColors.add(unhex("FFb82029"));
+
+    sheperdFlowerColors = new ArrayList<Integer>();
+    sheperdFlowerColors.add(unhex("FFf8ecec"));
+    sheperdFlowerColors.add(unhex("FFf5cbb7"));
+    sheperdFlowerColors.add(unhex("ff5c4e5f"));
+
+    stemColors = new ArrayList<Integer>();
+    stemColors.add(unhex("FF5e7554"));
+    stemColors.add(unhex("FF41513f"));
+    stemColors.add(unhex("FF363f2e"));
+
+    woodyColors = new ArrayList<Integer>();
+    woodyColors.add(unhex("FF643e46"));
+    woodyColors.add(unhex("FF474541"));
+
+    leafColors = new ArrayList<Integer>();
+    leafColors.add(unhex("FF5e7554"));
+    leafColors.add(unhex("FF3b5830"));
+
+    leafTipColors = new ArrayList<Integer>();
+    leafTipColors.add(unhex("FF4f7140"));
+
+    grassColors = new ArrayList<Integer>();
+    grassColors.add(unhex("FF5e7554"));
+    // grassColors.add(unhex("FF41513f"));
+    grassColors.add(unhex("FF363f2e"));
+    grassColors.add(unhex("FF789030"));
+
+    
+
+  }
+
+  color getColor(String id){
+    if (sat >0.5){
+      if (id == "TULIP"){
+        return color(tulipFlowerColors.get(
+          floor(random(0,tulipFlowerColors.size()-0.1))));
+      }
+
+      if (id == "SHEPERD"){
+          return color(sheperdFlowerColors.get(
+            floor(random(0,sheperdFlowerColors.size()-0.1))));
+      }
+      
+      if (id == "STEM"){
+          return color(stemColors.get(
+            floor(random(0,stemColors.size()-0.1))));
+      }
+
+
+      if (id == "LEAF"){
+          return color(leafColors.get(
+            floor(random(0,leafColors.size()-0.1))));
+      }
+
+      if (id == "LEAF_TIP"){
+          return color(leafTipColors.get(
+            floor(random(0,leafTipColors.size()-0.1))));
+      }
+
+      if (id == "WOOD"){
+          return color(woodyColors.get(
+            floor(random(0,woodyColors.size()-0.1))));
+      }
+
+
+      if (id == "GRASS"){
+          return color(grassColors.get(
+            floor(random(0,grassColors.size()-0.1))));
+      }
+    }
+
+    else {
+      if (id == "TULIP"){
+        return color(0);
+      }
+
+      if (id == "SHEPERD"){
+        return color(0);
+      }
+    }
+    return color(0);
+  }
+}
+
+
 int LINE_SHAPE = 0;
 int SOLID_SHAPE = 1;
 class WordShape {
@@ -277,14 +381,14 @@ class WordShape {
     if (this.shapeType ==LINE_SHAPE){
       shape.beginShape();
       shape.noFill();
-      shape.stroke(0);
+      // shape.stroke(0);
       shape.strokeWeight(2);
     }
     else{
       shape.beginShape();
-      shape.fill(fillColor);
-      shape.stroke(0);
-      shape.strokeWeight(2);
+      //shape.fill(fillColor);
+      //shape.stroke(fillColor);
+      shape.strokeWeight(0.1);
     }
     shapeBegun =true;
   }
@@ -296,6 +400,10 @@ class WordShape {
      else {
        shape.endShape(CLOSE);
      }
+  }
+  
+  void setColor(color c){
+    shape.fill(c);
   }
   
   void generateShape(Iterator<Module> it,  HashMap<UUID, NodeWord> children) {
@@ -335,6 +443,7 @@ class WordShape {
         TurtleState ts = new TurtleState(turtle);
         child.updateTurtleState(ts);
       }
+
       if (index  <oldShapeCount){
         try{
           index +=m.drawFunction(shape, index);

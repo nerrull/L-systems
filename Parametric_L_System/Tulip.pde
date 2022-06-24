@@ -7,7 +7,7 @@ class Tulip extends ParametricLSystem{
   int leaf_interval_mean;
   float leaf_interval;
   float leaf_angle, angle_variance;
-  
+  color stem_color, flower_color, leaf_color, leaf_tip_color;
   Tulip(){
 
     angle = radians(30);
@@ -16,20 +16,24 @@ class Tulip extends ParametricLSystem{
     size_factor =1.;
     int num_leaves  = 3 ;
     leaf_size = 12;
-    leaf_interval_mean = 9;
+    leaf_interval_mean = 6;
     leaf_interval = random(leaf_interval_mean-2, leaf_interval_mean+2);
     axial_range = radians(2);
     radial_range = radians(10);
     
-    leaf_angle= 25;
+    leaf_angle= 20;
     angle_variance = 3;
     defineRules();    
+    stem_color = colorPicker.getColor("STEM");
+    flower_color = colorPicker.getColor("TULIP");
+    leaf_color = colorPicker.getColor("LEAF");
+    leaf_tip_color = colorPicker.getColor("LEAF_TIP");
 
     word = new Word();
     word.add(new Segment());
-    word.add(new Green());
-    word.add(new Rradial(radians(90)));
-    word.add(new Rradial(random(radians(5),radians(30))));
+    word.add(new Color(stem_color, true, false));
+    //word.add(new Rradial(radians(90)));
+    word.add(new Rradial(random(radians(10),radians(50))));
     if (random(0,1) >0.5){
       word.add(new Rradial(radians(180)));
     }
@@ -129,16 +133,15 @@ class Tulip extends ParametricLSystem{
           if (age - floor(age) < growth_step){
             n_leaves +=1;
             ret.add(new Segment());
-            ret.add(new Green());
+            ret.add(new Color(stem_color, true, false));
             ret.add(new LBrack());
             ret.add(new And(radians(3)));
-    
-            ret.add(new DelayModule(5, new TimedRotation(10.,radians(la), new And(0))));
+            ret.add(new DelayModule(5, new TimedRotation(20.,radians(la), new And(0))));
             ret.add(new Leaf(0, getLeafSize()));
             ret.add(new RBrack());
             
             ret.add(new Segment());
-            ret.add(new Green());
+            ret.add(new Color(stem_color, true,false));
             ret.add(new Slash(radians(180)));
             ret.add(new IR(leaf_interval));
             
@@ -157,6 +160,7 @@ class Tulip extends ParametricLSystem{
        
         ret.add(new LBrack());
         //ret.add(new Move());
+        ret.add(new Color(stem_color, true, false));
         ret.add(new IR(flower_interval));
         ret.add(new K(flower_interval));
         ret.add(new K(flower_interval));
@@ -164,7 +168,6 @@ class Tulip extends ParametricLSystem{
         ret.add(new K(flower_interval));
         ret.add(new K(flower_interval));
         ret.add(new K(flower_interval));
-
         ret.add(new EndCut());
         ret.add(new RBrack());
       }
@@ -189,11 +192,10 @@ class Tulip extends ParametricLSystem{
         float size = m.getP("size");
         //ArrayList<Module> ret = new  ArrayList<Module>();
         float angle = radians(7);
-        float extra_angle = angle - radians((angle/size));
-        // ret.add(new LeafPointer(0,10, "TulipLeaf"));
+        float extra_angle = angle/2 - radians(((angle/2)/size));
         ret.add(new LBrack());
         ret.add(new Fill());
-        ret.add(new White());
+        ret.add(new Color(leaf_color, true, true));
         ret.add(new Minus(angle));
         ret.add(new TimedRotation(size/1.5,extra_angle, new Minus(0)));
         ret.add(new F(.1));
@@ -209,12 +211,13 @@ class Tulip extends ParametricLSystem{
         ret.add(new Plus(angle));
         ret.add(new TimedRotation(size/1.5,extra_angle, new Plus(0)));
         ret.add(new F(.1));
+        ret.add(new Color(leaf_tip_color, true, true));
         ret.add(new I(size));
         ret.add(new RBrack());
         
         ret.add(new LBrack());
         ret.add(new Fill());
-        ret.add(new White());
+        ret.add(new Color(leaf_color, true, true));
         ret.add(new Plus(angle));
         ret.add(new TimedRotation(size/1.5,extra_angle, new Plus(0)));
         ret.add(new F(.1));
@@ -229,6 +232,8 @@ class Tulip extends ParametricLSystem{
         ret.add(new Minus(angle));
         ret.add(new TimedRotation(size/1.5,extra_angle, new Minus(0)));
         ret.add(new F(.1));
+        ret.add(new Color(leaf_tip_color, true, true));
+
         ret.add(new I(size));
         ret.add(new RBrack());
         return true;
@@ -243,16 +248,17 @@ class Tulip extends ParametricLSystem{
         float flower_interval = m.getP("age");
 
         float angle = radians(18);
-        ret.add(new Segment());
-        
+
         
         ret.add(new LBrack());
         ret.add(new Fill());
-
+        ret.add(new Color(stem_color, true, true));
+        ret.add(new Exclamation(0.1));
         ret.add(new DelayModule(flower_interval, new TimedRotation(10.,radians(15.), new And(0))));
         ret.add(new And(angle));
         ret.add(new Plus(angle));
         ret.add(new I(flowerSize/2));
+        ret.add(new Color(flower_color, true, true));
         ret.add(new DelayModule(flower_interval, new I(flowerSize/2)));
         ret.add(new And(-angle));
         ret.add(new And(-(angle)));
@@ -265,11 +271,13 @@ class Tulip extends ParametricLSystem{
  
         ret.add(new LBrack());
         ret.add(new Fill());
-
+        ret.add(new Exclamation(0.1));
+        ret.add(new Color(stem_color, true, true));
         ret.add(new DelayModule(flower_interval, new TimedRotation(10.,radians(15.), new And(0))));
         ret.add(new And(angle));
         ret.add(new Minus(angle));
         ret.add(new I(flowerSize/2));
+        ret.add(new Color(flower_color, true, true));
         ret.add(new DelayModule(flower_interval, new I(flowerSize/2)));
         ret.add(new And(-angle));
         ret.add(new And(-(angle)));

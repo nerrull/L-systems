@@ -201,6 +201,50 @@ class White extends Module{
     //p. stroke(255,255,255); 
   }
 }
+
+class Color extends Module{
+  String id;
+  color c;
+  boolean stroke;
+  boolean fill;
+  Color(String i, boolean stroke){
+    super("Color");
+    c = colorPicker.getColor(i);
+    id =i;
+    this.stroke =stroke;
+  }
+  
+
+  
+  Color(color c, boolean stroke, boolean fill){
+    super("Color");
+    this.c =c;
+    id ="None";
+    this.stroke =stroke;
+    this.fill =fill;
+
+  }
+
+
+  void drawFunction(){
+  }
+  
+  void drawFunction(PShape p){
+    if (this.fill)
+    {
+      p.fill(c);
+    }
+    if(stroke){
+      p.stroke(c);
+    }
+  }
+  
+  String repr(){
+     //return "";
+    return "Color" + "(" +id+")";
+  }
+}
+
 class Dollar extends Module{
   Dollar(){
     super("$");
@@ -221,6 +265,11 @@ class Exclamation extends Module{
   void drawFunction(){
     strokeWeight(this.getP("width"));
   }
+  
+  void drawFunction(PShape s){
+    s.strokeWeight(this.getP("width"));
+  }
+  
   
   String repr(){
     return "!" + "(" +this.getP("width") +")";

@@ -4,7 +4,10 @@ Edge1 plant;
 String system;
 float globalAngle;
 
-
+  public void settings() {
+    size(800, 800, P2D);
+  }
+ 
 void setup(){
   controlFrame = new ControlFrame(this, 500,600, "Controls");
 

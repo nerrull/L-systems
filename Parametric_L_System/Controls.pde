@@ -10,6 +10,9 @@ class ControlFrame extends PApplet {
   ControlP5 cp5;
   Slider growthSlider;
   Slider ageSlider;
+  Slider saturationSlider;
+  Slider camAngleSlider;
+  Slider camIncrementSlider;
 
   ArrayList<Slider> odds_sliders;
   int last_selected = 0;
@@ -36,13 +39,35 @@ class ControlFrame extends PApplet {
           field.setGrowthRate(value, false);
         }});// add the Callback Listener
         
-    ageSlider = cp5.addSlider("ageDeath").plugTo("ageDeath").setRange(1., 500.).setValue(100).setPosition(120, 10).setSize(100,20);
+    ageSlider = cp5.addSlider("ageDeath").plugTo("ageDeath").setRange(1., 500.).setValue(500).setPosition(120, 10).setSize(100,20);
     ageSlider.onChange(new CallbackListener() { 
         public void controlEvent(CallbackEvent theEvent) {
           float value = theEvent.getController().getValue();
           field.deathAge  =value;
         }});// add the Callback Listener
-    cp5.addButton("addPlant",2).setPosition(100, 35).setSize(100,20);
+        
+    saturationSlider = cp5.addSlider("saturation").plugTo("saturation").setRange(0., 1.).setValue(100).setPosition(120, 40).setSize(100,20);
+    saturationSlider.onChange(new CallbackListener() { 
+        public void controlEvent(CallbackEvent theEvent) {
+          float value = theEvent.getController().getValue();
+          colorPicker.sat = value;
+        }});// add the Callback Listener
+    
+    camAngleSlider = cp5.addSlider("cam_angle").plugTo("max_rotation_angle").setRange(0, 5).setValue(0).setPosition(120, 60).setSize(100,20);
+    camAngleSlider.onChange(new CallbackListener() { 
+    public void controlEvent(CallbackEvent theEvent) {
+          float value = theEvent.getController().getValue();
+          max_rotation_angle = value;
+        }});// add the Callback Listener
+    camIncrementSlider = cp5.addSlider("cam_Increment").plugTo("angle_increment").setRange(0, .1).setValue(0).setPosition(230, 60).setSize(100,20);
+    camIncrementSlider.onChange(new CallbackListener() { 
+    public void controlEvent(CallbackEvent theEvent) {
+          float value = theEvent.getController().getValue();
+          angle_increment = value;
+    }});// add the Callback Listener
+
+        
+    cp5.addButton("addPlant",2).setPosition(300, 65).setSize(100,20);
     //cp5.addNumberbox("color 2").plugTo(parent, "c2").setRange(0, 1000).setValue(1).setPosition(100, 60).setSize(100,20);
     
     Slider s;
@@ -110,16 +135,45 @@ void setAge(float theValue) {
 }
 }
 
+//camera stuff
+CameraState camState;
+JSONObject camjson;
+float max_rotation_angle;
+float angle_increment;
 
 
-void updateCamPosition(){
-  float radius = (float)100.;
-  float y= sin(frameCount /100)*radius;
-  float z = cos(frameCount /100)*radius;
-  float x =500;
-  //cam.handleDrag(-1.,0.);
+float current_angle = 0;
+void saveCamPosition(){
+  camState = cam.getState();
 }
 
+
+void loadCamPosition(){
+  cam.setState(camState);
+  current_angle = 0;
+  SWAY =false;
+}
+
+void updateCamPosition(){
+  current_angle+=angle_increment;
+  if (abs(current_angle) > max_rotation_angle){
+    angle_increment = angle_increment*-1;
+  }
+  float inc = angle_increment;
+  float diff = abs(max_rotation_angle)  -current_angle;
+  if(diff <.3){
+    cam.rotateY(radians(angle_increment/min(10, .3/diff) ));
+
+  }
+  else{ 
+    cam.rotateY(radians(angle_increment));
+  }
+}
+
+
+void cameraSway(){
+
+}
 
 void SetCamVector(PVector p)
 {
